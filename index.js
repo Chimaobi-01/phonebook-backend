@@ -2,8 +2,9 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 
-app.use(cors())
+
 const app = express()
+app.use(cors())
 app.use(express.json())
 
 morgan.token('type', function (req, res) { 
@@ -67,7 +68,7 @@ app.get('/api/persons/:id', handleGETRequestToPersonByID)
 app.delete('/api/persons/:id', handleDELETERequestToPersonByID)
 app.post('/api/persons', handlePOSTRequestToPersonsJSON)
 
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
     console.log(`app is starting at http://localhost:${PORT}`)
 })
