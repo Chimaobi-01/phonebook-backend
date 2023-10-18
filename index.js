@@ -1,6 +1,7 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./module/person');
 
 
 const app = express()
@@ -23,42 +24,63 @@ const handleGETRequestToHome = (req, res) => {
     res.send(`<h1>Welcome to Phonebook backend </h1>`)
 }
 const handleGETRequestToPersonsJSON = (req, res) => {
-    res.json(persons)
+    Person.find({}).then(persons => res.json(persons))
 }
-const handlePOSTRequestToPersonsJSON = (req, res) => {
+const handlePOSTRequestToPersonsJSON = (req, res, next) => {
     const body = req.body
-    const personName = persons.find(p => p.name === body.name)
-    if ((!body.name || !body.number) || (personName)) {
-        return res.status(400).json({ error: 'name must be unique' })
-    }
-    const person = {
-        id: Math.floor(Math.random() * 1000),
+    const person = new Person({
         name: body.name,
-        number: body.number
-    }
-    persons = persons.concat(person)
-    res.json(person)
-}
-const handleGETRequestToPersonByID = (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(p => p.id === id)
-    person ? res.json(person) : res.status(404).end(`<p style="color: red;">
-    Requested user not found
-    </p>`)
-}
-const handleDELETERequestToPersonByID = (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
-    res.status(204).end()
-}
-const handleGETRequestToInfo = (req, res) => {
-    const date = new Date()
-    res.send(`
-    <p>Phonebook has info for ${persons.length} persons</p>
-    <p>${date.toString()}</p>
-    `)
+        number: body.number,
+    })
+    person.save()
+    .then(person => res.json(person))
+    .catch(error => next(error))
 }
 
+const handleGETRequestToPersonByID = (req, res, next) => {
+    const id = req.params.id
+    Person.findById(id).then(person => res.json(person)).catch(error => next(error))
+}
+const handlePUTRequestToPersonByID = (req, res, next) => {
+    const id = req.params.id
+    const body = req.body
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+    Person.findByIdAndUpdate(id, person, { new: true, runValidators: true, context: 'query' })
+    .then(result => res.json(result))
+    .catch(error => next(error))
+}
+const handleDELETERequestToPersonByID = (req, res, next) => {
+    const id = req.params.id
+    Person.findByIdAndRemove(id)
+    .then(() => res.status(204).end())
+    .catch(error => next(error))
+}
+const handleGETRequestToInfo = (req, res, next) => {
+   
+    const date = new Date()
+    Person.find({})
+    .then(result => {
+        res.send(`
+    <p>Phonebook has info for ${result.length} persons from database</p>
+    <p>${date.toString()}</p>
+    `)
+    })
+    .catch(error => next(error))
+    
+}
+const errorHandler = (error, request, response, next) => {
+    console.log(error.message);
+    if(error.name === "CastError"){
+        return response.status(400).send({ error: "malfuntioned id"})
+    }
+    else if(error.name === "ValidationError"){
+        return response.status(400).send({ error: error.message})
+    }
+    next(error)
+}
 
 
 
@@ -67,7 +89,9 @@ app.get('/api/persons', handleGETRequestToPersonsJSON)
 app.get('/info', handleGETRequestToInfo)
 app.get('/api/persons/:id', handleGETRequestToPersonByID)
 app.delete('/api/persons/:id', handleDELETERequestToPersonByID)
+app.put('/api/persons/:id', handlePUTRequestToPersonByID)
 app.post('/api/persons', handlePOSTRequestToPersonsJSON)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
@@ -82,39 +106,3 @@ app.listen(PORT, () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
