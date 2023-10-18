@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
@@ -93,7 +94,7 @@ app.put('/api/persons/:id', handlePUTRequestToPersonByID)
 app.post('/api/persons', handlePOSTRequestToPersonsJSON)
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`app is starting at http://localhost:${PORT}`)
 })

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 
-const password = 'KUjBs4qkrWEwhKSt'
-const url = `mongodb+srv://chimaobi01:${password}@cluster0.fyuntux.mongodb.net/phonebookApp?retryWrites=true&w=majority`
+
+const url = process.env.MONGODB_URL
 
 console.log('Connecting to MongoDB...');
 mongoose.set('strictQuery', false)
