@@ -2,13 +2,13 @@ const mongoose = require('mongoose');
 
 
 
-const url = process.env.MONGODB_URL
+const url = process.env.MONGODB_URI 
 
 console.log('Connecting to MongoDB...');
 mongoose.set('strictQuery', false)
 mongoose.connect(url)
 .then(() => console.log('Connected to MongoDB'))
-.catch(error => console.log('Cannot reach your Database at the moment', error))
+.catch(error => console.log('Cannot reach your Database at the moment', error.message))
 
 // schema
 const personSchema = new mongoose.Schema({ 
